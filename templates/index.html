@@ -7,15 +7,38 @@
     <link rel="stylesheet" href="/static/app.css">
   </head>
   <body>
+    <div class="background-orb orb-one" aria-hidden="true"></div>
+    <div class="background-orb orb-two" aria-hidden="true"></div>
     <main class="app-shell">
-      <header>
-        <p class="eyebrow">GROUNDED DOCUMENT Q&amp;A</p>
-        <h1>Research Agent</h1>
-        <p class="subhead">Answers strictly from your indexed documents, with verifiable citations.</p>
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">GROUNDED DOCUMENT Q&amp;A</p>
+          <h1>Research Agent</h1>
+          <p class="subhead">Ask a question, get a direct answer, and see exactly which source chunks support it.</p>
+        </div>
+        <div class="hero-meta" aria-label="Product highlights">
+          <div class="meta-card">
+            <span class="meta-label">Mode</span>
+            <strong>Research</strong>
+            <span>citation-checked</span>
+          </div>
+          <div class="meta-card">
+            <span class="meta-label">Keyboard</span>
+            <strong>Ctrl / ⌘ + Enter</strong>
+            <span>submit question</span>
+          </div>
+        </div>
       </header>
 
       <section class="question-panel" aria-label="Ask a research question">
-        <label for="question">Ask a question</label>
+        <div class="panel-heading">
+          <div>
+            <p class="section-tag">ASK</p>
+            <h2>Question</h2>
+          </div>
+          <p class="helper">Use the sample prompts below or type your own question.</p>
+        </div>
+        <label class="sr-only" for="question">Ask a question</label>
         <textarea id="question" maxlength="2000" placeholder="e.g. What is the paid parental leave policy?"></textarea>
         <div class="actions">
           <span id="char-count">0 / 2000</span>
@@ -26,20 +49,32 @@
       <section id="status" class="status hidden" aria-live="polite"></section>
       <section id="result" class="result hidden" aria-live="polite">
         <div class="result-heading">
-          <span class="label">ANSWER</span>
+          <div>
+            <p class="section-tag">RESULT</p>
+            <h2>Answer</h2>
+          </div>
           <span id="grounding-badge" class="badge"></span>
         </div>
         <p id="answer"></p>
         <p id="gap-note" class="gap hidden"></p>
         <div id="citations-wrap" class="citations hidden">
-          <h2>Sources used</h2>
+          <div class="citations-head">
+            <h3>Sources used</h3>
+            <span>Retrieved chunks with excerpts</span>
+          </div>
           <ul id="citations"></ul>
         </div>
       </section>
 
       <section class="examples" aria-label="Example questions">
-        <p class="label">TRY AN EXAMPLE</p>
-        <div>
+        <div class="panel-heading examples-heading">
+          <div>
+            <p class="section-tag">TRY EXAMPLES</p>
+            <h2>Sample prompts</h2>
+          </div>
+          <p class="helper">Click one to instantly run a grounded query.</p>
+        </div>
+        <div class="example-grid">
           <button class="example" type="button">How much parental leave is available?</button>
           <button class="example" type="button">What Docker version does PulseBoard need?</button>
           <button class="example" type="button">What was Q3 revenue?</button>

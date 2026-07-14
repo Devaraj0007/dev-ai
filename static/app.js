@@ -9,6 +9,10 @@ const citations = document.querySelector('#citations');
 const groundingBadge = document.querySelector('#grounding-badge');
 const charCount = document.querySelector('#char-count');
 
+function updateCount() {
+  charCount.textContent = `${question.value.length} / 2000`;
+}
+
 function setStatus(message, isError = false) {
   status.textContent = message;
   status.classList.toggle('hidden', !message);
@@ -43,6 +47,7 @@ async function ask() {
     question.focus();
     return;
   }
+  document.body.classList.add('is-loading');
   askButton.disabled = true;
   askButton.textContent = 'Researching…';
   result.classList.add('hidden');
@@ -60,18 +65,21 @@ async function ask() {
   } catch (error) {
     setStatus(error.message || 'The request failed. Please try again.', true);
   } finally {
+    document.body.classList.remove('is-loading');
     askButton.disabled = false;
     askButton.innerHTML = 'Ask agent <span aria-hidden="true">→</span>';
   }
 }
 
-question.addEventListener('input', () => { charCount.textContent = `${question.value.length} / 2000`; });
+question.addEventListener('input', updateCount);
 question.addEventListener('keydown', (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') ask();
 });
 askButton.addEventListener('click', ask);
 document.querySelectorAll('.example').forEach((button) => button.addEventListener('click', () => {
   question.value = button.textContent;
-  question.dispatchEvent(new Event('input'));
+  updateCount();
   ask();
 }));
+
+updateCount();
