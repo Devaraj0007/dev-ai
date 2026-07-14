@@ -1,0 +1,16 @@
+Northwind Analytics — Q3 2026 Shareholder Letter (Excerpt)
+
+Revenue
+Total revenue for Q3 2026 was $42.3 million, up 27% year-over-year from $33.3 million in Q3 2025. Subscription revenue accounted for $38.1 million of the total, while professional services and one-time implementation fees accounted for the remaining $4.2 million.
+
+Regional Performance
+North America remained the largest region at $24.8 million in revenue, growing 19% year-over-year. EMEA grew fastest among all regions at 41% year-over-year, reaching $11.2 million in revenue, driven primarily by new enterprise contracts signed in Germany and the Netherlands. APAC revenue was $6.3 million, growing 22% year-over-year.
+
+Customer Metrics
+Northwind ended Q3 2026 with 1,840 paying customers, up from 1,510 at the end of Q3 2025. Net revenue retention was 118%, and gross revenue retention was 94%. The number of customers with annual contract value above $100,000 grew to 212, up from 165 a year earlier.
+
+Profitability
+Q3 2026 operating margin was 8%, compared to an operating margin of 2% in Q3 2025. The improvement was primarily attributed to headcount discipline in go-to-market functions and a reduction in third-party infrastructure costs following the migration to a new cloud provider in Q2 2026.
+
+Guidance
+For Q4 2026, Northwind expects revenue in the range of $45 million to $46.5 million, and expects full-year 2026 revenue to land between $162 million and $164 million.

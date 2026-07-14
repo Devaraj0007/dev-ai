@@ -1,0 +1,10 @@
+How many weeks of paid parental leave do employees get once they've completed 12 months of service?
+Can an employee work fully remote without any approval?
+What is the minimum Docker Engine version required to run PulseBoard?
+What is the most common cause of a blank PulseBoard dashboard, and how do you fix it?
+How many active alerts can a dashboard have on the Pro plan?
+What was Northwind Analytics' total revenue in Q3 2026, and how much did it grow year-over-year?
+Which region grew fastest in Q3 2026, and what drove that growth?
+What is Northwind's projected revenue range for Q4 2026?
+Who is Northwind Analytics' current CEO?
+Does PulseBoard support Microsoft Azure as a data source?
