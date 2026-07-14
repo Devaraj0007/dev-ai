@@ -2,8 +2,9 @@
 agent.py
 The core Research Agent. Given a question:
   1. Retrieve relevant chunks from the local TF-IDF index (src/retriever.py).
-  2. Ask Claude to synthesize an answer using ONLY those chunks, citing each
-     claim with a [n] marker tied to a numbered source list.
+  2. Ask an LLM (via OpenRouter, defaults to Claude Sonnet 4.5) to synthesize
+     an answer using ONLY those chunks, citing each claim with a [n] marker
+     tied to a numbered source list.
   3. Parse the model's structured JSON response.
   4. Validate that every citation number the model used actually corresponds
      to a chunk we retrieved (a "grounding check") -- this is what prevents
@@ -18,12 +19,14 @@ import re
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional
 
-from anthropic import Anthropic
+from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
 
-from src.retriever import Retriever
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
-DEFAULT_MODEL = os.environ.get("RESEARCH_AGENT_MODEL", "claude-sonnet-4-6")
-DEFAULT_TOP_K = int(os.environ.get("RESEARCH_AGENT_TOP_K", "4"))
+DEFAULT_MODEL = "google/gemini-2.5-flash:nitro"
+DEFAULT_TOP_K = 4
+DEFAULT_MIN_SCORE = 0.05
+DEFAULT_TIMEOUT_SECONDS = 30.0
 
 SYSTEM_PROMPT = """You are a research assistant that answers questions strictly \
 from a set of numbered source excerpts provided to you. You must never use \
@@ -45,6 +48,24 @@ preamble, matching this exact schema:
   "sources_sufficient": <true or false>,
   "gap_note": "<if sources_sufficient is false, a one-sentence note on what \
 is missing; otherwise an empty string>"
+}
+"""
+
+GENERAL_SYSTEM_PROMPT = """You are a helpful, capable general-purpose AI assistant.
+Answer the user's question directly, clearly, and naturally using your general
+knowledge and reasoning. Do not mention source excerpts, document availability,
+citations, retrieval, or system limitations unless the user asks about them.
+
+You may receive relevant private document excerpts. Use them when helpful and
+prefer their facts for questions about those documents, but do not reveal that
+you used them. If the question is ambiguous, make a sensible best effort and
+briefly state any important uncertainty instead of refusing.
+
+Respond with ONLY a single valid JSON object, no markdown fences or preamble:
+{
+  "answer": "<a complete, helpful answer>",
+  "sources_sufficient": true,
+  "gap_note": ""
 }
 """
 
@@ -77,19 +98,50 @@ class ResearchAgent:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        model: str = DEFAULT_MODEL,
-        top_k: int = DEFAULT_TOP_K,
+        model: Optional[str] = None,
+        top_k: Optional[int] = None,
+        min_score: Optional[float] = None,
+        mode: Optional[str] = None,
     ):
-        api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
+        api_key = api_key or os.environ.get("OPENROUTER_API_KEY")
         if not api_key:
             raise RuntimeError(
-                "No Anthropic API key found. Set ANTHROPIC_API_KEY in your "
-                "environment or .env file."
+                "No OpenRouter API key found. Set OPENROUTER_API_KEY in your "
+                "environment or .env file (get one at https://openrouter.ai/keys)."
             )
-        self.client = Anthropic(api_key=api_key)
-        self.model = model
-        self.top_k = top_k
-        self.retriever = Retriever()
+        self.model = model or os.environ.get("RESEARCH_AGENT_MODEL", DEFAULT_MODEL)
+        self.top_k = top_k if top_k is not None else _positive_int_env("RESEARCH_AGENT_TOP_K", DEFAULT_TOP_K)
+        self.min_score = (
+            min_score if min_score is not None else _score_env("RESEARCH_AGENT_MIN_SCORE", DEFAULT_MIN_SCORE)
+        )
+        self.mode = (mode or os.environ.get("RESEARCH_AGENT_MODE", "research")).strip().lower()
+        if not self.model.strip():
+            raise ValueError("RESEARCH_AGENT_MODEL must not be empty.")
+        if self.top_k < 1:
+            raise ValueError("RESEARCH_AGENT_TOP_K must be at least 1.")
+        if not 0 <= self.min_score <= 1:
+            raise ValueError("RESEARCH_AGENT_MIN_SCORE must be between 0 and 1.")
+        if self.mode not in {"general", "research"}:
+            raise ValueError("RESEARCH_AGENT_MODE must be either 'general' or 'research'.")
+
+        self.client = OpenAI(
+            api_key=api_key,
+            base_url=OPENROUTER_BASE_URL,
+            timeout=DEFAULT_TIMEOUT_SECONDS,
+            max_retries=2,
+            default_headers={
+                # Optional but recommended by OpenRouter for attribution/analytics.
+                "HTTP-Referer": os.environ.get(
+                    "OPENROUTER_SITE_URL", "https://github.com/research-agent"
+                ),
+                "X-Title": os.environ.get("OPENROUTER_SITE_NAME", "Research Agent"),
+            },
+        )
+        self.retriever = None
+        if self.mode == "research":
+            from src.retriever import Retriever
+
+            self.retriever = Retriever()
 
     def _build_user_prompt(self, question: str, chunks: List[Dict]) -> str:
         if not chunks:
@@ -118,42 +170,72 @@ class ResearchAgent:
                 return json.loads(match.group(0))
             raise
 
-    def _validate_grounding(self, answer: str, chunks: List[Dict]) -> tuple:
+    def _validate_grounding(self, answer: str, chunks: List[Dict], sources_sufficient: bool) -> tuple:
         """Checks every [n] marker in the answer against the retrieved chunk
         list. Returns (is_grounded, list_of_invalid_markers, citations)."""
         used_numbers = sorted(set(int(n) for n in re.findall(r"\[(\d+)\]", answer)))
         valid_range = set(range(1, len(chunks) + 1))
 
         invalid = [n for n in used_numbers if n not in valid_range]
+        missing_citation = sources_sufficient and not used_numbers
         citations = [
             {
                 "marker": f"[{n}]",
+                "chunk_id": chunks[n - 1]["id"],
                 "source": chunks[n - 1]["source"],
                 "excerpt": chunks[n - 1]["text"][:200],
             }
             for n in used_numbers
             if n in valid_range
         ]
-        is_grounded = len(invalid) == 0
-        return is_grounded, [f"[{n}]" for n in invalid], citations
+        invalid_markers = [f"[{n}]" for n in invalid]
+        if missing_citation:
+            invalid_markers.append("[missing citation]")
+        return not invalid_markers, invalid_markers, citations
 
     def ask(self, question: str) -> AgentResponse:
-        chunks = self.retriever.retrieve(question, top_k=self.top_k)
+        if self.mode == "research":
+            chunks = self.retriever.retrieve(question, top_k=self.top_k, min_score=self.min_score)
+        else:
+            chunks = []
 
-        message = self.client.messages.create(
-            model=self.model,
-            max_tokens=1024,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": self._build_user_prompt(question, chunks)}],
-        )
-        raw_text = "".join(block.text for block in message.content if block.type == "text")
+        try:
+            completion = self.client.chat.completions.create(
+                model=self.model,
+                max_tokens=1024,
+                messages=[
+                    {"role": "system", "content": GENERAL_SYSTEM_PROMPT if self.mode == "general" else SYSTEM_PROMPT},
+                    {"role": "user", "content": self._build_user_prompt(question, chunks)},
+                ],
+            )
+        except APIStatusError as e:
+            # Surface OpenRouter's own error body (e.g. invalid key, model not
+            # found, out of credits) rather than a bare stack trace.
+            detail = getattr(e, "message", str(e))
+            raise RuntimeError(f"OpenRouter API error ({e.status_code}): {detail}") from e
+        except APITimeoutError as e:
+            raise RuntimeError("OpenRouter request timed out after retries. Please try again.") from e
+        except APIConnectionError as e:
+            raise RuntimeError(f"Could not reach OpenRouter: {e}") from e
+
+        raw_text = completion.choices[0].message.content or ""
 
         try:
             parsed = self._parse_model_json(raw_text)
-            answer = parsed.get("answer", "").strip()
-            sources_sufficient = bool(parsed.get("sources_sufficient", False))
+            if not isinstance(parsed, dict):
+                raise ValueError("Response JSON must be an object.")
+            answer = parsed.get("answer", "")
+            sources_sufficient = parsed.get("sources_sufficient", False)
             gap_note = parsed.get("gap_note", "")
-        except (json.JSONDecodeError, AttributeError):
+            if not isinstance(answer, str) or not isinstance(sources_sufficient, bool) or not isinstance(gap_note, str):
+                raise ValueError("Response JSON did not match the required schema.")
+            answer = answer.strip()
+            gap_note = gap_note.strip()
+            if not answer:
+                raise ValueError("Response JSON contained an empty answer.")
+            if not sources_sufficient and not gap_note:
+                gap_note = "The retrieved sources do not contain enough information to answer this question."
+        except (json.JSONDecodeError, AttributeError, ValueError):
             # Degrade gracefully: surface the raw text rather than crashing,
             # and flag it clearly as a parse failure so it's never mistaken
             # for a validated, grounded answer.
@@ -161,7 +243,12 @@ class ResearchAgent:
             sources_sufficient = False
             gap_note = "Model response could not be parsed as structured JSON."
 
-        grounded, invalid_markers, citations = self._validate_grounding(answer, chunks)
+        if self.mode == "research":
+            grounded, invalid_markers, citations = self._validate_grounding(
+                answer, chunks, sources_sufficient
+            )
+        else:
+            grounded, invalid_markers, citations = True, [], []
 
         return AgentResponse(
             question=question,
@@ -169,7 +256,24 @@ class ResearchAgent:
             sources_sufficient=sources_sufficient,
             gap_note=gap_note,
             citations=citations,
-            retrieved_chunks=[{"source": c["source"], "score": c["score"]} for c in chunks],
+            retrieved_chunks=[{"chunk_id": c["id"], "source": c["source"], "score": c["score"]} for c in chunks],
             grounded=grounded,
             ungrounded_markers=invalid_markers,
         )
+
+
+def _positive_int_env(name: str, default: int) -> int:
+    value = os.environ.get(name, str(default))
+    try:
+        parsed = int(value)
+    except ValueError as e:
+        raise ValueError(f"{name} must be an integer.") from e
+    return parsed
+
+
+def _score_env(name: str, default: float) -> float:
+    value = os.environ.get(name, str(default))
+    try:
+        return float(value)
+    except ValueError as e:
+        raise ValueError(f"{name} must be a number between 0 and 1.") from e

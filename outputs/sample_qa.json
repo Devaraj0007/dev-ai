@@ -1,0 +1,370 @@
+[
+  {
+    "question": "How many weeks of paid parental leave do employees get once they've completed 12 months of service?",
+    "answer": "Employees who have completed at least 12 months of continuous service at Northwind Analytics are eligible for 16 weeks of fully paid parental leave [1]. This applies regardless of gender or the nature of the parenting event, such as birth, adoption, or fostering [1].",
+    "sources_sufficient": true,
+    "gap_note": "",
+    "citations": [
+      {
+        "marker": "[1]",
+        "chunk_id": 3,
+        "source": "company_handbook.txt",
+        "excerpt": "3. Parental Leave\nNorthwind Analytics offers 16 weeks of fully paid parental leave to any employee who has completed at least 12 months of continuous service, regardless of gender or the nature of the"
+      }
+    ],
+    "grounded": true,
+    "ungrounded_markers": [],
+    "retrieved_chunks": [
+      {
+        "chunk_id": 3,
+        "source": "company_handbook.txt",
+        "score": 0.6351
+      },
+      {
+        "chunk_id": 2,
+        "source": "company_handbook.txt",
+        "score": 0.0545
+      },
+      {
+        "chunk_id": 1,
+        "source": "company_handbook.txt",
+        "score": 0.0518
+      }
+    ]
+  },
+  {
+    "question": "Can an employee work fully remote without any approval?",
+    "answer": "No, a fully remote work arrangement requires written approval from both the employee's manager and the People Operations team [1]. These arrangements are also reviewed every six months [1].",
+    "sources_sufficient": true,
+    "gap_note": "",
+    "citations": [
+      {
+        "marker": "[1]",
+        "chunk_id": 1,
+        "source": "company_handbook.txt",
+        "excerpt": "1. Remote Work Policy\nEmployees may work remotely up to three days per week without prior manager approval. Fully remote arrangements require written approval from both the employee's manager and the "
+      }
+    ],
+    "grounded": true,
+    "ungrounded_markers": [],
+    "retrieved_chunks": [
+      {
+        "chunk_id": 1,
+        "source": "company_handbook.txt",
+        "score": 0.3845
+      },
+      {
+        "chunk_id": 4,
+        "source": "company_handbook.txt",
+        "score": 0.0916
+      },
+      {
+        "chunk_id": 0,
+        "source": "company_handbook.txt",
+        "score": 0.0836
+      },
+      {
+        "chunk_id": 6,
+        "source": "company_handbook.txt",
+        "score": 0.0637
+      }
+    ]
+  },
+  {
+    "question": "What is the minimum Docker Engine version required to run PulseBoard?",
+    "answer": "The minimum supported Docker Engine version for PulseBoard is 24.0 [1].",
+    "sources_sufficient": true,
+    "gap_note": "",
+    "citations": [
+      {
+        "marker": "[1]",
+        "chunk_id": 9,
+        "source": "product_manual.txt",
+        "excerpt": "2. Installation\nPulseBoard is deployed as a Docker container. The minimum supported Docker Engine version is 24.0. The container requires at least 4 vCPUs and 8 GB of RAM for typical workloads of up t"
+      }
+    ],
+    "grounded": true,
+    "ungrounded_markers": [],
+    "retrieved_chunks": [
+      {
+        "chunk_id": 9,
+        "source": "product_manual.txt",
+        "score": 0.3233
+      },
+      {
+        "chunk_id": 10,
+        "source": "product_manual.txt",
+        "score": 0.0801
+      },
+      {
+        "chunk_id": 7,
+        "source": "product_manual.txt",
+        "score": 0.062
+      },
+      {
+        "chunk_id": 8,
+        "source": "product_manual.txt",
+        "score": 0.0571
+      }
+    ]
+  },
+  {
+    "question": "What is the most common cause of a blank PulseBoard dashboard, and how do you fix it?",
+    "answer": "The most common reason for a blank PulseBoard dashboard is an expired data source credential [1]. To fix this, users should go to Settings > Data Sources and click \"Test Connection\" [1]. If the connection test fails, the credentials need to be re-entered [1].",
+    "sources_sufficient": true,
+    "gap_note": "",
+    "citations": [
+      {
+        "marker": "[1]",
+        "chunk_id": 12,
+        "source": "product_manual.txt",
+        "excerpt": "5. Troubleshooting: Blank Dashboard\nIf a dashboard renders blank, the most common cause is an expired data source credential. Users should navigate to Settings > Data Sources and click \"Test Connectio"
+      }
+    ],
+    "grounded": true,
+    "ungrounded_markers": [],
+    "retrieved_chunks": [
+      {
+        "chunk_id": 12,
+        "source": "product_manual.txt",
+        "score": 0.4585
+      },
+      {
+        "chunk_id": 8,
+        "source": "product_manual.txt",
+        "score": 0.0964
+      },
+      {
+        "chunk_id": 7,
+        "source": "product_manual.txt",
+        "score": 0.0698
+      },
+      {
+        "chunk_id": 11,
+        "source": "product_manual.txt",
+        "score": 0.0555
+      }
+    ]
+  },
+  {
+    "question": "How many active alerts can a dashboard have on the Pro plan?",
+    "answer": "A dashboard on the Pro plan can have a maximum of 25 active alerts [1].",
+    "sources_sufficient": true,
+    "gap_note": "",
+    "citations": [
+      {
+        "marker": "[1]",
+        "chunk_id": 11,
+        "source": "product_manual.txt",
+        "excerpt": "4. Alerting\nPulseBoard allows users to configure threshold-based alerts on any metric. Alerts can be routed to email, Slack, or a generic webhook. There is a maximum of 25 active alerts per dashboard "
+      }
+    ],
+    "grounded": true,
+    "ungrounded_markers": [],
+    "retrieved_chunks": [
+      {
+        "chunk_id": 11,
+        "source": "product_manual.txt",
+        "score": 0.3597
+      },
+      {
+        "chunk_id": 10,
+        "source": "product_manual.txt",
+        "score": 0.0934
+      },
+      {
+        "chunk_id": 8,
+        "source": "product_manual.txt",
+        "score": 0.0783
+      },
+      {
+        "chunk_id": 12,
+        "source": "product_manual.txt",
+        "score": 0.0549
+      }
+    ]
+  },
+  {
+    "question": "What was Northwind Analytics' total revenue in Q3 2026, and how much did it grow year-over-year?",
+    "answer": "Northwind Analytics' total revenue for Q3 2026 was $42.3 million [1]. This represents a 27% increase year-over-year from $33.3 million in Q3 2025 [1].",
+    "sources_sufficient": true,
+    "gap_note": "",
+    "citations": [
+      {
+        "marker": "[1]",
+        "chunk_id": 16,
+        "source": "quarterly_report.txt",
+        "excerpt": "Revenue\nTotal revenue for Q3 2026 was $42.3 million, up 27% year-over-year from $33.3 million in Q3 2025. Subscription revenue accounted for $38.1 million of the total, while professional services and"
+      }
+    ],
+    "grounded": true,
+    "ungrounded_markers": [],
+    "retrieved_chunks": [
+      {
+        "chunk_id": 16,
+        "source": "quarterly_report.txt",
+        "score": 0.4198
+      },
+      {
+        "chunk_id": 15,
+        "source": "quarterly_report.txt",
+        "score": 0.3041
+      },
+      {
+        "chunk_id": 17,
+        "source": "quarterly_report.txt",
+        "score": 0.2845
+      },
+      {
+        "chunk_id": 0,
+        "source": "company_handbook.txt",
+        "score": 0.2035
+      }
+    ]
+  },
+  {
+    "question": "Which region grew fastest in Q3 2026, and what drove that growth?",
+    "answer": "EMEA grew fastest among all regions at 41% year-over-year in Q3 2026, driven primarily by new enterprise contracts signed in Germany and the Netherlands [2].",
+    "sources_sufficient": true,
+    "gap_note": "",
+    "citations": [
+      {
+        "marker": "[2]",
+        "chunk_id": 17,
+        "source": "quarterly_report.txt",
+        "excerpt": "Regional Performance\nNorth America remained the largest region at $24.8 million in revenue, growing 19% year-over-year. EMEA grew fastest among all regions at 41% year-over-year, reaching $11.2 millio"
+      }
+    ],
+    "grounded": true,
+    "ungrounded_markers": [],
+    "retrieved_chunks": [
+      {
+        "chunk_id": 15,
+        "source": "quarterly_report.txt",
+        "score": 0.2048
+      },
+      {
+        "chunk_id": 17,
+        "source": "quarterly_report.txt",
+        "score": 0.168
+      },
+      {
+        "chunk_id": 18,
+        "source": "quarterly_report.txt",
+        "score": 0.1473
+      },
+      {
+        "chunk_id": 19,
+        "source": "quarterly_report.txt",
+        "score": 0.1372
+      }
+    ]
+  },
+  {
+    "question": "What is Northwind's projected revenue range for Q4 2026?",
+    "answer": "Northwind's projected revenue range for Q4 2026 is between $45 million and $46.5 million [1].",
+    "sources_sufficient": true,
+    "gap_note": "",
+    "citations": [
+      {
+        "marker": "[1]",
+        "chunk_id": 20,
+        "source": "quarterly_report.txt",
+        "excerpt": "Guidance\nFor Q4 2026, Northwind expects revenue in the range of $45 million to $46.5 million, and expects full-year 2026 revenue to land between $162 million and $164 million."
+      }
+    ],
+    "grounded": true,
+    "ungrounded_markers": [],
+    "retrieved_chunks": [
+      {
+        "chunk_id": 20,
+        "source": "quarterly_report.txt",
+        "score": 0.4007
+      },
+      {
+        "chunk_id": 16,
+        "source": "quarterly_report.txt",
+        "score": 0.1091
+      },
+      {
+        "chunk_id": 0,
+        "source": "company_handbook.txt",
+        "score": 0.1079
+      },
+      {
+        "chunk_id": 15,
+        "source": "quarterly_report.txt",
+        "score": 0.0991
+      }
+    ]
+  },
+  {
+    "question": "Who is Northwind Analytics' current CEO?",
+    "answer": "The provided source excerpts do not contain information about Northwind Analytics' current CEO.",
+    "sources_sufficient": false,
+    "gap_note": "The excerpts include a company handbook, a product manual, and a shareholder letter, but none of these documents mention the name of the current CEO.",
+    "citations": [],
+    "grounded": true,
+    "ungrounded_markers": [],
+    "retrieved_chunks": [
+      {
+        "chunk_id": 0,
+        "source": "company_handbook.txt",
+        "score": 0.3976
+      },
+      {
+        "chunk_id": 7,
+        "source": "product_manual.txt",
+        "score": 0.3855
+      },
+      {
+        "chunk_id": 15,
+        "source": "quarterly_report.txt",
+        "score": 0.3651
+      },
+      {
+        "chunk_id": 3,
+        "source": "company_handbook.txt",
+        "score": 0.1058
+      }
+    ]
+  },
+  {
+    "question": "Does PulseBoard support Microsoft Azure as a data source?",
+    "answer": "The provided information does not specify if PulseBoard supports Microsoft Azure as a data source [1]. PulseBoard supports Snowflake, BigQuery, and PostgreSQL as data sources [1].",
+    "sources_sufficient": false,
+    "gap_note": "The provided text lists supported data sources, but does not mention Microsoft Azure.",
+    "citations": [
+      {
+        "marker": "[1]",
+        "chunk_id": 8,
+        "source": "product_manual.txt",
+        "excerpt": "1. Overview\nPulseBoard is a real-time analytics dashboard that connects to a customer's data warehouse and renders live charts, alerts, and shareable reports. PulseBoard supports Snowflake, BigQuery, "
+      }
+    ],
+    "grounded": true,
+    "ungrounded_markers": [],
+    "retrieved_chunks": [
+      {
+        "chunk_id": 8,
+        "source": "product_manual.txt",
+        "score": 0.1783
+      },
+      {
+        "chunk_id": 12,
+        "source": "product_manual.txt",
+        "score": 0.1738
+      },
+      {
+        "chunk_id": 7,
+        "source": "product_manual.txt",
+        "score": 0.0895
+      },
+      {
+        "chunk_id": 14,
+        "source": "product_manual.txt",
+        "score": 0.0819
+      }
+    ]
+  }
+]

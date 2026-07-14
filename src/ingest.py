@@ -3,10 +3,11 @@ ingest.py
 Loads raw source documents (.txt, .md, .pdf), splits them into retrievable
 chunks, and builds a TF-IDF index over those chunks.
 
-Design choice: TF-IDF + cosine similarity (via scikit-learn) rather than a
-neural embedding model. This keeps the project dependency-light and fully
-reproducible offline, at the cost of missing pure semantic (synonym-level)
-matches. See README "Tradeoffs" for the full discussion.
+Design choice: TF-IDF + cosine similarity implemented in pure Python rather
+than a neural embedding model. This keeps the project dependency-light,
+portable on Windows, and fully reproducible offline, at the cost of missing
+pure semantic (synonym-level) matches. See README "Tradeoffs" for the full
+discussion.
 """
 
 from __future__ import annotations
@@ -14,10 +15,10 @@ from __future__ import annotations
 import os
 import re
 import pickle
+import math
+from collections import Counter
 from dataclasses import dataclass, asdict
-from typing import List
-
-from sklearn.feature_extraction.text import TfidfVectorizer
+from typing import List, Dict
 
 try:
     from pypdf import PdfReader
@@ -36,12 +37,47 @@ DEFAULT_SOURCE_DIR = os.path.join(
 MAX_CHUNK_CHARS = 700
 CHUNK_OVERLAP_SENTENCES = 1
 
+STOP_WORDS = {
+    "a",
+    "an",
+    "and",
+    "are",
+    "as",
+    "at",
+    "be",
+    "by",
+    "for",
+    "from",
+    "has",
+    "have",
+    "in",
+    "is",
+    "it",
+    "of",
+    "on",
+    "or",
+    "that",
+    "the",
+    "their",
+    "this",
+    "to",
+    "was",
+    "were",
+    "will",
+    "with",
+}
+
 
 @dataclass
 class Chunk:
     id: int
     source: str
     text: str
+
+
+def _tokenize(text: str) -> List[str]:
+    tokens = re.findall(r"[a-z0-9]+", text.lower())
+    return [token for token in tokens if token not in STOP_WORDS]
 
 
 def _read_txt_or_md(path: str) -> str:
@@ -125,7 +161,7 @@ def chunk_document(filename: str, text: str, start_id: int) -> List[Chunk]:
 
 
 def build_index(source_dir: str = DEFAULT_SOURCE_DIR, index_path: str = DEFAULT_INDEX_PATH) -> dict:
-    """Loads all source docs, chunks them, fits a TF-IDF vectorizer over the
+    """Loads all source docs, chunks them, fits a TF-IDF index over the
     chunks, and persists everything needed for retrieval to disk."""
     docs = load_documents(source_dir)
 
@@ -136,21 +172,42 @@ def build_index(source_dir: str = DEFAULT_SOURCE_DIR, index_path: str = DEFAULT_
         all_chunks.extend(doc_chunks)
         next_id += len(doc_chunks)
 
-    corpus = [c.text for c in all_chunks]
-    vectorizer = TfidfVectorizer(
-        stop_words="english",
-        ngram_range=(1, 2),
-        max_df=0.9,
-        min_df=1,
-    )
-    matrix = vectorizer.fit_transform(corpus)
+    tokenized_chunks = [_tokenize(chunk.text) for chunk in all_chunks]
+    document_frequencies: Counter[str] = Counter()
+    for tokens in tokenized_chunks:
+        document_frequencies.update(set(tokens))
+
+    num_documents_total = len(tokenized_chunks)
+    idf: Dict[str, float] = {
+        token: math.log((1 + num_documents_total) / (1 + df)) + 1.0
+        for token, df in document_frequencies.items()
+    }
+
+    vectors: List[Dict[str, float]] = []
+    norms: List[float] = []
+    for tokens in tokenized_chunks:
+        counts = Counter(tokens)
+        total_terms = sum(counts.values()) or 1
+        vector: Dict[str, float] = {}
+        for token, count in counts.items():
+            token_idf = idf.get(token)
+            if token_idf is None:
+                continue
+            tf = count / total_terms
+            weight = tf * token_idf
+            if weight > 0:
+                vector[token] = weight
+        norm = math.sqrt(sum(weight * weight for weight in vector.values()))
+        vectors.append(vector)
+        norms.append(norm)
 
     os.makedirs(os.path.dirname(index_path), exist_ok=True)
     with open(index_path, "wb") as f:
         pickle.dump(
             {
-                "vectorizer": vectorizer,
-                "matrix": matrix,
+                "idf": idf,
+                "vectors": vectors,
+                "norms": norms,
                 "chunks": [asdict(c) for c in all_chunks],
             },
             f,
