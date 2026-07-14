@@ -13,6 +13,7 @@ Built for the 24-Hour AI Agent Challenge.
 - A batch run with 1,113 sample questions in `data/questions.txt`.
 - A saved demo output file in `outputs/sample_qa.json`.
 - A web UI at `python -m src.web`.
+- MIT license in the repository root for reuse clarity.
 
 ## Install
 
