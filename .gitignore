@@ -14,10 +14,14 @@ venv/
 dist/
 build/
 
-# ── Node ─────────────────────────────────────────────────
+# ── Node & Frontend ─────────────────────────────────────
 node_modules/
 .next/
 out/
+frontend/node_modules/
+frontend/.next/
+backend_api/__pycache__/
+
 
 # ── IDE ──────────────────────────────────────────────────
 .idea/

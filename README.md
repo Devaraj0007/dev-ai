@@ -88,6 +88,33 @@ python -m unittest discover tests
 
 ---
 
+## 🌐 Web UI (Optional Demo)
+
+Dev AI includes an optional web interface demo built with **FastAPI** (`backend_api/`) and **Next.js** (`frontend/`) featuring Vengeance UI animated components.
+
+> **Note**: The CLI (`python -m src.cli`) remains the primary entry point. The Web UI is a thin, optional API layer built on top of `src/`.
+
+### 1. Start the FastAPI Backend
+
+```bash
+pip install -r backend_api/requirements.txt
+uvicorn backend_api.main:app --reload --port 8000
+```
+- API Health Check: `http://localhost:8000/health`
+- Interactive API Docs: `http://localhost:8000/docs`
+
+### 2. Start the Next.js Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser to submit research questions and view grounded answer cards with live citation verification badges.
+
+---
+
 ## 📝 License
 
 MIT License — see [LICENSE](LICENSE) for details.
+
