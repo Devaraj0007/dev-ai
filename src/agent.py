@@ -80,6 +80,7 @@ class AgentResponse:
     retrieved_chunks: List[Dict] = field(default_factory=list)
     grounded: bool = True
     ungrounded_markers: List[str] = field(default_factory=list)
+    provider_used: str = ""
 
     def to_dict(self) -> Dict:
         return {
@@ -91,7 +92,27 @@ class AgentResponse:
             "grounded": self.grounded,
             "ungrounded_markers": self.ungrounded_markers,
             "retrieved_chunks": self.retrieved_chunks,
+            "provider_used": self.provider_used,
         }
+
+
+def _is_billing_or_quota_error(e: Exception) -> bool:
+    status_code = getattr(e, "status_code", None)
+    if status_code in (402, 403, 429):
+        return True
+    msg = str(e).lower()
+    keywords = [
+        "quota",
+        "billing",
+        "credit",
+        "exceeded",
+        "resource_exhausted",
+        "insufficient_quota",
+        "pay-as-you-go",
+        "payment",
+        "rate limit",
+    ]
+    return any(kw in msg for kw in keywords)
 
 
 class ResearchAgent:
@@ -102,11 +123,13 @@ class ResearchAgent:
         top_k: Optional[int] = None,
         min_score: Optional[float] = None,
         mode: Optional[str] = None,
+        gemini_api_key: Optional[str] = None,
     ):
-        api_key = api_key or os.environ.get("NVIDIA_API_KEY")
-        if not api_key:
+        self.gemini_api_key = gemini_api_key or os.environ.get("GEMINI_API_KEY")
+        self.nvidia_api_key = api_key or os.environ.get("NVIDIA_API_KEY")
+        if not self.gemini_api_key and not self.nvidia_api_key:
             raise RuntimeError(
-                "No NVIDIA API key found. Set NVIDIA_API_KEY in your "
+                "No API key found. Set GEMINI_API_KEY or NVIDIA_API_KEY in your "
                 "environment or .env file."
             )
         self.model = model or os.environ.get("RESEARCH_AGENT_MODEL") or os.environ.get("RESEARCH_MODEL", DEFAULT_MODEL)
@@ -124,12 +147,6 @@ class ResearchAgent:
         if self.mode not in {"general", "research"}:
             raise ValueError("RESEARCH_AGENT_MODE must be either 'general' or 'research'.")
 
-        self.client = OpenAI(
-            api_key=api_key,
-            base_url=NVIDIA_BASE_URL,
-            timeout=DEFAULT_TIMEOUT_SECONDS,
-            max_retries=2,
-        )
         self.retriever = None
         if self.mode == "research":
             from src.retriever import Retriever
@@ -192,26 +209,71 @@ class ResearchAgent:
         else:
             chunks = []
 
-        try:
-            completion = self.client.chat.completions.create(
-                model=self.model,
-                max_tokens=1024,
-                messages=[
-                    {"role": "system", "content": GENERAL_SYSTEM_PROMPT if self.mode == "general" else SYSTEM_PROMPT},
-                    {"role": "user", "content": self._build_user_prompt(question, chunks)},
-                ],
-            )
-        except APIStatusError as e:
-            # Surface NVIDIA's own error body (e.g. invalid key, model not
-            # found) rather than a bare stack trace.
-            detail = getattr(e, "message", str(e))
-            raise RuntimeError(f"NVIDIA API error ({e.status_code}): {detail}") from e
-        except APITimeoutError as e:
-            raise RuntimeError("NVIDIA request timed out after retries. Please try again.") from e
-        except APIConnectionError as e:
-            raise RuntimeError(f"Could not reach NVIDIA API: {e}") from e
+        messages = [
+            {"role": "system", "content": GENERAL_SYSTEM_PROMPT if self.mode == "general" else SYSTEM_PROMPT},
+            {"role": "user", "content": self._build_user_prompt(question, chunks)},
+        ]
 
-        raw_text = completion.choices[0].message.content or ""
+        raw_text = ""
+        provider_used = ""
+        errors_logged = []
+
+        # 1) Try Gemini if GEMINI_API_KEY is available
+        if self.gemini_api_key:
+            gemini_client = OpenAI(
+                api_key=self.gemini_api_key,
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+                timeout=DEFAULT_TIMEOUT_SECONDS,
+                max_retries=1,
+            )
+
+            # Tier 1: gemini-3.6-flash
+            try:
+                completion = gemini_client.chat.completions.create(
+                    model="gemini-3.6-flash",
+                    max_tokens=1024,
+                    messages=messages,
+                )
+                raw_text = completion.choices[0].message.content or ""
+                provider_used = "gemini-3.6-flash"
+            except Exception as e:
+                errors_logged.append(f"gemini-3.6-flash error: {e}")
+                if _is_billing_or_quota_error(e):
+                    # Tier 2: gemini-3-flash
+                    try:
+                        completion = gemini_client.chat.completions.create(
+                            model="gemini-3-flash",
+                            max_tokens=1024,
+                            messages=messages,
+                        )
+                        raw_text = completion.choices[0].message.content or ""
+                        provider_used = "gemini-3-flash"
+                    except Exception as e2:
+                        errors_logged.append(f"gemini-3-flash error: {e2}")
+
+        # Tier 3: NVIDIA NIM (if Gemini did not return an answer)
+        if not raw_text and self.nvidia_api_key:
+            nvidia_client = OpenAI(
+                api_key=self.nvidia_api_key,
+                base_url=NVIDIA_BASE_URL,
+                timeout=DEFAULT_TIMEOUT_SECONDS,
+                max_retries=2,
+            )
+            try:
+                completion = nvidia_client.chat.completions.create(
+                    model=self.model,
+                    max_tokens=1024,
+                    messages=messages,
+                )
+                raw_text = completion.choices[0].message.content or ""
+                provider_used = "nvidia"
+            except Exception as e:
+                errors_logged.append(f"nvidia error: {e}")
+
+        if not raw_text:
+            raise RuntimeError(
+                f"All LLM providers failed to generate a response. Logged errors: {' | '.join(errors_logged)}"
+            )
 
         try:
             parsed = self._parse_model_json(raw_text)
@@ -229,9 +291,7 @@ class ResearchAgent:
             if not sources_sufficient and not gap_note:
                 gap_note = "The retrieved sources do not contain enough information to answer this question."
         except (json.JSONDecodeError, AttributeError, ValueError):
-            # Degrade gracefully: surface the raw text rather than crashing,
-            # and flag it clearly as a parse failure so it's never mistaken
-            # for a validated, grounded answer.
+            # Degrade gracefully: surface the raw text rather than crashing
             answer = raw_text.strip()
             sources_sufficient = False
             gap_note = "Model response could not be parsed as structured JSON."
@@ -252,6 +312,7 @@ class ResearchAgent:
             retrieved_chunks=[{"chunk_id": c["id"], "source": c["source"], "score": c["score"]} for c in chunks],
             grounded=grounded,
             ungrounded_markers=invalid_markers,
+            provider_used=provider_used,
         )
 
 

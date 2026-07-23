@@ -39,7 +39,12 @@
 
 ### Prerequisites
 - Python 3.11+
-- At least one LLM API key (OpenAI, OpenRouter, or NVIDIA NIM)
+- At least one LLM API key (`GEMINI_API_KEY` or `NVIDIA_API_KEY`)
+
+> **Automatic 3-Tier Provider Fallback**:
+> 1. **`gemini-3.6-flash`**: Primary model tried first when `GEMINI_API_KEY` is present.
+> 2. **`gemini-3-flash`**: Automatic fallback if `gemini-3.6-flash` encounters quota, billing, or 402/403/429 rate-limit errors.
+> 3. **NVIDIA NIM**: Final fallback if `GEMINI_API_KEY` is missing or all Gemini attempts fail (uses `NVIDIA_API_KEY`).
 
 ### 1. Clone & Configure
 
@@ -47,7 +52,7 @@
 git clone https://github.com/Devaraj0007/dev-ai.git
 cd dev-ai
 cp .env.example .env
-# Edit .env and add your API key
+# Edit .env and set GEMINI_API_KEY or NVIDIA_API_KEY
 ```
 
 ### 2. Install Dependencies & Build Index

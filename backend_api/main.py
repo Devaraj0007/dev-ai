@@ -87,6 +87,7 @@ def ask_question(req: AskRequest):
             "sources_sufficient": response.sources_sufficient,
             "gap_note": response.gap_note,
             "grounded": response.grounded,
+            "provider_used": response.provider_used,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

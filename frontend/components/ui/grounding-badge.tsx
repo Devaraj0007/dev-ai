@@ -63,3 +63,36 @@ export function SufficiencyBadge({
     </motion.div>
   );
 }
+
+export function ProviderBadge({
+  provider,
+  className,
+}: {
+  provider?: string;
+  className?: string;
+}) {
+  if (!provider) return null;
+  const label =
+    provider === "gemini-3.6-flash"
+      ? "Gemini 3.6 Flash"
+      : provider === "gemini-3-flash"
+      ? "Gemini 3 Flash (Free)"
+      : provider === "nvidia"
+      ? "NVIDIA NIM"
+      : provider;
+
+  return (
+    <motion.div
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25, delay: 0.1 }}
+      className={cn(
+        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border backdrop-blur-md bg-purple-950/40 text-purple-300 border-purple-500/30",
+        className
+      )}
+    >
+      <Info className="w-3.5 h-3.5 text-purple-400" />
+      <span>{label}</span>
+    </motion.div>
+  );
+}

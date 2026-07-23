@@ -84,6 +84,7 @@ def cmd_interactive(args):
 def _print_response(response, indent: bool = False):
     pad = "  " if indent else ""
     print(f"{pad}Answer: {response.answer}")
+    print(f"{pad}Provider used: {response.provider_used}")
     print(f"{pad}Sources sufficient: {response.sources_sufficient}")
     if response.gap_note:
         print(f"{pad}Gap note: {response.gap_note}")

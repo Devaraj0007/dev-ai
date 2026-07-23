@@ -10,7 +10,7 @@ import {
   Bookmark,
   CheckCircle,
 } from "lucide-react";
-import { GroundingBadge, SufficiencyBadge } from "./grounding-badge";
+import { GroundingBadge, SufficiencyBadge, ProviderBadge } from "./grounding-badge";
 import { cn } from "@/lib/utils";
 
 export interface SourceItem {
@@ -25,6 +25,7 @@ export interface AskResponseData {
   sources_sufficient: boolean;
   gap_note: string;
   grounded: boolean;
+  provider_used?: string;
 }
 
 interface ResultCardProps {
@@ -52,7 +53,8 @@ export function ResultCard({ data, className }: ResultCardProps) {
           <FileText className="w-5 h-5 text-indigo-400" />
           <h2 className="text-lg font-bold text-slate-100">Research Answer</h2>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <ProviderBadge provider={data.provider_used} />
           <GroundingBadge grounded={data.grounded} />
           <SufficiencyBadge sufficient={data.sources_sufficient} />
         </div>
