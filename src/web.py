@@ -1,4 +1,4 @@
-"""Local web application for the Research Agent.
+"""Local web application for Dev AI.
 
 Run with: python -m src.web
 Then open: http://127.0.0.1:8000
@@ -55,7 +55,7 @@ service = AgentService()
 
 
 class AppHandler(BaseHTTPRequestHandler):
-    server_version = "ResearchAgent/1.0"
+    server_version = "DevAI/1.0"
 
     def do_GET(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
@@ -134,7 +134,7 @@ class AppHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run the Research Agent web UI.")
+    parser = argparse.ArgumentParser(description="Run the Dev AI web UI.")
     parser.add_argument("--host", default="127.0.0.1", help="Host to bind (default: 127.0.0.1)")
     parser.add_argument("--port", type=int, default=8000, help="Port to bind (default: 8000)")
     args = parser.parse_args()
@@ -143,7 +143,7 @@ def main() -> None:
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     server = ThreadingHTTPServer((args.host, args.port), AppHandler)
-    logger.info("Research Agent UI running at http://%s:%s", args.host, args.port)
+    logger.info("Dev AI UI running at http://%s:%s", args.host, args.port)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

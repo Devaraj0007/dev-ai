@@ -1,6 +1,6 @@
 """
 cli.py
-Command-line entrypoint for the Research Agent.
+Command-line entrypoint for Dev AI.
 
 Usage:
     python -m src.cli ingest
@@ -66,7 +66,7 @@ def cmd_interactive(args):
     from src.agent import ResearchAgent
 
     agent = ResearchAgent(model=args.model, top_k=args.top_k, min_score=args.min_score, mode=args.mode)
-    print("Research Agent (interactive). Type 'exit' to quit.\n")
+    print("Dev AI (interactive). Type 'exit' to quit.\n")
     while True:
         try:
             question = input("Question: ").strip()
@@ -97,7 +97,7 @@ def _write_json_atomically(path: str, data) -> None:
     """Avoid leaving a partially-written batch file if the process stops."""
     output_dir = os.path.dirname(path) or "."
     os.makedirs(output_dir, exist_ok=True)
-    fd, temp_path = tempfile.mkstemp(prefix=".research-agent-", suffix=".json", dir=output_dir, text=True)
+    fd, temp_path = tempfile.mkstemp(prefix=".dev-ai-", suffix=".json", dir=output_dir, text=True)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -112,7 +112,7 @@ def _write_json_atomically(path: str, data) -> None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Research Agent with Citations")
+    parser = argparse.ArgumentParser(description="Dev AI with Citations")
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_ingest = sub.add_parser("ingest", help="Build the retrieval index from data/sources")

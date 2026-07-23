@@ -1,6 +1,6 @@
 """
 agent.py
-The core Research Agent. Given a question:
+The core Dev AI agent. Given a question:
   1. Retrieve relevant chunks from the local TF-IDF index (src/retriever.py).
   2. Ask an LLM (via NVIDIA NIM API, defaults to nvidia/nemotron-3-ultra-550b-a55b) to synthesize
      an answer using ONLY those chunks, citing each claim with a [n] marker
