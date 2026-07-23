@@ -1,0 +1,60 @@
+# ── Environment ──────────────────────────────────────────
+.env
+.env.local
+.env.production
+
+# ── Python ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# ── Node ─────────────────────────────────────────────────
+node_modules/
+.next/
+out/
+
+# ── IDE ──────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ── Database ─────────────────────────────────────────────
+*.db
+*.sqlite3
+*.bak
+*.tsbuildinfo
+
+# ── Vector Stores ────────────────────────────────────────
+vector_cache.pkl
+*.pkl
+faiss_index*
+chroma_data/
+
+# ── Uploads & Cache ──────────────────────────────────────
+uploaded_docs/
+tmp_dir/
+scratch/
+
+
+# ── OS ───────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Testing ──────────────────────────────────────────────
+.pytest_cache/
+htmlcov/
+.coverage
+
+# ── Docker ───────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Index cache ──────────────────────────────────────────
+.index_cache/

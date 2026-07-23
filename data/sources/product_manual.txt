@@ -1,0 +1,22 @@
+Northwind Analytics — "PulseBoard" Product Manual (v3.2)
+
+1. Overview
+PulseBoard is a real-time analytics dashboard that connects to a customer's data warehouse and renders live charts, alerts, and shareable reports. PulseBoard supports Snowflake, BigQuery, and PostgreSQL as data sources.
+
+2. Installation
+PulseBoard is deployed as a Docker container. The minimum supported Docker Engine version is 24.0. The container requires at least 4 vCPUs and 8 GB of RAM for typical workloads of up to 50 concurrent dashboard viewers. For workloads above 200 concurrent viewers, Northwind recommends the clustered deployment mode, which requires a Redis instance for session sharing.
+
+3. Data Refresh
+By default, dashboards refresh data every 15 minutes. This interval can be lowered to a minimum of 60 seconds on the "Pro" and "Enterprise" plans. The "Starter" plan is capped at a 15-minute minimum refresh interval regardless of configuration.
+
+4. Alerting
+PulseBoard allows users to configure threshold-based alerts on any metric. Alerts can be routed to email, Slack, or a generic webhook. There is a maximum of 25 active alerts per dashboard on the Starter and Pro plans; Enterprise plans have no alert limit.
+
+5. Troubleshooting: Blank Dashboard
+If a dashboard renders blank, the most common cause is an expired data source credential. Users should navigate to Settings > Data Sources and click "Test Connection" to confirm. If the connection test fails, credentials must be re-entered. The second most common cause is a query timeout; queries that take longer than 30 seconds are automatically cancelled and the dashboard tile will show a timeout icon instead of the blank state.
+
+6. Troubleshooting: Slow Load Times
+Slow dashboard load times are most often caused by unindexed columns being used in a filter. Northwind recommends adding indexes to any column used in a dashboard filter. Dashboards with more than 12 tiles on a single page will also see increased load times and should be split across multiple pages.
+
+7. User Roles
+PulseBoard supports three roles: Viewer (read-only access), Editor (can create and modify dashboards), and Admin (can manage data sources, users, and billing). Role assignment is managed from the Admin > Users panel.
